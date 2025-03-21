@@ -1,0 +1,327 @@
+### FILE TREE (SELECTED)
+
+├─ .upm
+|  └─ store.json (2 lines)
+├─ patients_api
+|  └─ patients_routes.py (82 lines)
+|  ├─ patients_model.py (22 lines)
+├─ view_patient_record
+|  ├─ static
+|  |  └─ view_patient_record.js (40 lines)
+|  └─ templates
+|     ├─ all_patient_records.html (78 lines)
+|     └─ header.html (1 lines)
+|  ├─ view_patient_routes.py (23 lines)
+├─ main.py (36 lines)
+
+
+### FILE CONTENTS
+
+FILE: .upm/store.json
+----------------------------------------
+{"version":2,"languages":{"python-python3-poetry":{"specfileHash":"e327355e2ff2a8fc2b1efead46679f50","lockfileHash":"d529f6561c2d9f305b67b38b87915555"}}}
+
+
+FILE: patients_api/patients_routes.py
+----------------------------------------
+from flask import Blueprint, request, jsonify, redirect, url_for
+from .patients_model import db, Patient
+
+patients_bp = Blueprint('patients_bp', __name__)
+
+@patients_bp.route('/', methods=['GET'])
+def get_all_patients():
+    """
+    Fetch all patients, returning only their ID and patient_summary.
+    """
+    # SELECT id, patient_summary FROM patients;
+    patients = Patient.query.with_entities(Patient.id, Patient.patient_summary).all()
+
+    results = []
+    for p in patients:
+        results.append({"id": p.id, "patient_summary": p.patient_summary})
+
+    return jsonify(results), 200
+
+
+@patients_bp.route('/', methods=['POST'])
+def create_patient():
+    """
+    Create a new patient record. Expects JSON data in the request body:
+      {
+        "patient_summary": "...",
+        "real_time_alerts_insights": "...",
+        "interventions_care_plan": "...",
+        "timeline_gantt": "...",
+        "raw_medical_record_data": "..."
+      }
+    """
+    data = request.get_json(force=True)
+
+    new_patient = Patient(
+        patient_summary=data.get("patient_summary", ""),
+        real_time_alerts_insights=data.get("real_time_alerts_insights", ""),
+        interventions_care_plan=data.get("interventions_care_plan", ""),
+        timeline_gantt=data.get("timeline_gantt", ""),
+        raw_medical_record_data=data.get("raw_medical_record_data", "")
+    )
+
+    db.session.add(new_patient)
+    db.session.commit()
+
+    return jsonify({"message": "Patient created successfully", "id": new_patient.id}), 201
+
+
+@patients_bp.route('/<int:patient_id>', methods=['PUT'])
+def update_patient(patient_id):
+    """
+    Update an existing patient record by ID.
+    """
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        return jsonify({"error": "Patient not found"}), 404
+
+    data = request.get_json(force=True)
+    patient.patient_summary = data.get("patient_summary", patient.patient_summary)
+    patient.real_time_alerts_insights = data.get("real_time_alerts_insights", patient.real_time_alerts_insights)
+    patient.interventions_care_plan = data.get("interventions_care_plan", patient.interventions_care_plan)
+    patient.timeline_gantt = data.get("timeline_gantt", patient.timeline_gantt)
+    patient.raw_medical_record_data = data.get("raw_medical_record_data", patient.raw_medical_record_data)
+
+    db.session.commit()
+
+    return jsonify({"message": f"Patient {patient_id} updated successfully"}), 200
+
+
+@patients_bp.route('/<int:patient_id>/delete', methods=['POST'])
+def delete_patient(patient_id):
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        return jsonify({"error": "Patient not found"}), 404
+
+    db.session.delete(patient)
+    db.session.commit()
+
+    # Use the endpoint name 'index', which is defined in main.py as:
+    # @app.route('/')
+    # def index():
+    return redirect(url_for('index'))
+
+FILE: patients_api/patients_model.py
+----------------------------------------
+# Need to have a single database table to store:
+
+# primary key 
+# 1.	Patient Summary (Text)
+# 2.	Real-Time Alerts & Insights (text)
+# 3.	Interventions / Care Plan (text)
+# 4.	Timeline / Gantt (text)
+# 5.	Raw Medical Record Data (text)
+
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class Patient(db.Model):
+    __tablename__ = 'patients'
+
+    id = db.Column(db.Integer, primary_key=True)
+    patient_summary = db.Column(db.Text, nullable=True)
+    real_time_alerts_insights = db.Column(db.Text, nullable=True)
+    interventions_care_plan = db.Column(db.Text, nullable=True)
+    timeline_gantt = db.Column(db.Text, nullable=True)
+    raw_medical_record_data = db.Column(db.Text, nullable=True)
+
+FILE: view_patient_record/static/view_patient_record.js
+----------------------------------------
+// view_patient_record.js
+
+function submitPatient() {
+  // Grab the form data
+  const form = document.getElementById("patientForm");
+  const formData = new FormData(form);
+
+  // Build a JSON payload
+  const payload = {
+    patient_summary: formData.get("patient_summary"),
+    real_time_alerts_insights: formData.get("real_time_alerts_insights"),
+    interventions_care_plan: formData.get("interventions_care_plan"),
+    timeline_gantt: formData.get("timeline_gantt"),
+    raw_medical_record_data: formData.get("raw_medical_record_data"),
+  };
+
+  // Send a JSON POST request
+  fetch("/patients/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log("Success:", data);
+      // Optionally refresh or redirect after successful creation:
+      window.location.reload(); // or window.location.href = "/";
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      alert("Error creating patient. See console for details.");
+    });
+}
+
+FILE: view_patient_record/templates/all_patient_records.html
+----------------------------------------
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Records</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Include the JavaScript from your static folder -->
+    <script src="{{ url_for('view_patient_record.static', filename='view_patient_record.js') }}"></script>
+</head>
+<body class="p-6 bg-gray-50">
+<h1 class="text-3xl font-bold mb-6">Patient Records</h1>
+
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Summary</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alerts & Insights</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Care Plan</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+            {% for patient in patients %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap">{{ patient.id }}</td>
+                <td class="px-6 py-4">{{ patient.patient_summary }}</td>
+                <td class="px-6 py-4">{{ patient.real_time_alerts_insights }}</td>
+                <td class="px-6 py-4">{{ patient.interventions_care_plan }}</td>
+                <td class="px-6 py-4 space-x-2">
+                    <a href="/patients/{{ patient.id }}" class="text-blue-600 hover:text-blue-800">View</a>
+                    <form class="inline" method="POST" action="/patients/{{ patient.id }}/delete">
+                        <button type="submit" onclick="return confirm('Are you sure?')" class="text-red-600 hover:text-red-800">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-12 max-w-2xl">
+    <h2 class="text-2xl font-bold mb-6">Add New Patient</h2>
+    <!-- Remove method/action from the form, add an ID -->
+    <form id="patientForm" class="space-y-6">
+        <div>
+            <label for="patient_summary" class="block text-sm font-medium text-gray-700">Patient Summary:</label>
+            <textarea name="patient_summary" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+        </div>
+        <div>
+            <label for="real_time_alerts_insights" class="block text-sm font-medium text-gray-700">Alerts & Insights:</label>
+            <textarea name="real_time_alerts_insights" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+        </div>
+        <div>
+            <label for="interventions_care_plan" class="block text-sm font-medium text-gray-700">Care Plan:</label>
+            <textarea name="interventions_care_plan" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+        </div>
+        <div>
+            <label for="timeline_gantt" class="block text-sm font-medium text-gray-700">Timeline/Gantt:</label>
+            <textarea name="timeline_gantt" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+        </div>
+        <div>
+            <label for="raw_medical_record_data" class="block text-sm font-medium text-gray-700">Raw Medical Data:</label>
+            <textarea name="raw_medical_record_data" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+        </div>
+        <!-- Instead of a normal submit, we call our JS function -->
+        <button 
+            type="button" 
+            onclick="submitPatient()" 
+            class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+            Add Patient
+        </button>
+    </form>
+</div>
+    <script src="{{ url_for('view_patient_record.static', filename='view_patient_record.js') }}"></script>
+</body>
+</html>
+
+FILE: view_patient_record/templates/header.html
+----------------------------------------
+<!-- there should be a simple header that goes along the top of the page and stays fixed andp title for the website: 🏥 Chronic Kidney Insights Viewer . make sure to format using tailwinds CSS from CDN-->
+
+FILE: view_patient_record/view_patient_routes.py
+----------------------------------------
+# view_patient_routes.py
+
+from flask import Blueprint, render_template
+
+# Create a Blueprint for the "view_patient_record" module
+# The 'template_folder' and 'static_folder' here assume you have this directory layout:
+#  view_patient_record/
+#    templates/
+#      view_patient_record.html
+#    static/
+#      (your .js files)
+view_patient_record_bp = Blueprint(
+    'view_patient_record',
+    __name__,
+    template_folder='templates',
+    static_folder='static'
+)
+
+# Route for displaying the patient record page
+@view_patient_record_bp.route('/view')
+def show_patient_record():
+    # This should load 'view_patient_record.html' from the blueprint’s template folder
+    return render_template('view_patient_record.html')
+
+FILE: main.py
+----------------------------------------
+from flask import Flask, render_template
+from dotenv import load_dotenv
+import os
+
+from patients_api.patients_model import db, Patient
+from patients_api.patients_routes import patients_bp
+
+# ADD THIS import for your blueprint
+from view_patient_record.view_patient_routes import view_patient_record_bp
+
+load_dotenv()  # Load environment variables from .env
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+app = Flask(__name__, template_folder='view_patient_record/templates')
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+
+# Register your "patients" blueprint
+app.register_blueprint(patients_bp, url_prefix='/patients')
+
+# REGISTER THE VIEW PATIENT RECORD BLUEPRINT
+app.register_blueprint(view_patient_record_bp)
+
+@app.route('/')
+def index():
+    patients = Patient.query.all()
+    return render_template('all_patient_records.html', patients=patients)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+

@@ -1,4 +1,11 @@
-// view_patient_record.js
+// view_patient_record/static/view_patient_record.js
+
+document.addEventListener("DOMContentLoaded", function () {
+  const addButton = document.getElementById("addPatientButton");
+  if (addButton) {
+    addButton.addEventListener("click", submitPatient);
+  }
+});
 
 function submitPatient() {
   // Grab the form data
@@ -30,8 +37,8 @@ function submitPatient() {
     })
     .then((data) => {
       console.log("Success:", data);
-      // Optionally refresh or redirect after successful creation:
-      window.location.reload(); // or window.location.href = "/";
+      // Optionally refresh or redirect
+      window.location.reload();
     })
     .catch((error) => {
       console.error("Error:", error);
