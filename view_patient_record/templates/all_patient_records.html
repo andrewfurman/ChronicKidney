@@ -27,8 +27,7 @@
                     <td class="px-6 py-4">{{ patient.interventions_care_plan }}</td>
                     <td class="px-6 py-4 space-x-2">
                         <a href="/patients/{{ patient.id }}" class="text-blue-600 hover:text-blue-800">View</a>
-                        <form class="inline" method="POST" action="/">
-    <input type="hidden" name="_method" value="DELETE">
+                        <form class="inline" method="POST" action="/patients/{{ patient.id }}/delete">
                             <button type="submit" onclick="return confirm('Are you sure?')" class="text-red-600 hover:text-red-800">Delete</button>
                         </form>
                     </td>

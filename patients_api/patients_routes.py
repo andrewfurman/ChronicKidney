@@ -79,4 +79,4 @@ def delete_patient(patient_id):
     db.session.delete(patient)
     db.session.commit()
 
-    return redirect(url_for('index'))
+    return redirect('/')
