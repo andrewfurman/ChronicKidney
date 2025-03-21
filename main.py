@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, render_template
 from dotenv import load_dotenv
 import os
+from patients_api.patients_model import db, Patient
 
 from patients_api.patients_routes import patients_bp
 from patients_api.patients_model import db
@@ -27,7 +28,8 @@ app.register_blueprint(patients_bp, url_prefix='/patients')
 
 @app.route('/')
 def index():
-    return 'Hello from Flask + SQLAlchemy!'
+    patients = Patient.query.all()
+    return render_template('all_patient_records.html', patients=patients)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
