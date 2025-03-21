@@ -79,4 +79,4 @@ def delete_patient(patient_id):
     db.session.delete(patient)
     db.session.commit()
 
-    return flask.redirect('/')
+    return redirect('/')
