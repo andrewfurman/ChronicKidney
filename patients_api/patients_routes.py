@@ -67,11 +67,8 @@ def update_patient(patient_id):
     return jsonify({"message": f"Patient {patient_id} updated successfully"}), 200
 
 
-@patients_bp.route('/<int:patient_id>/delete', methods=['POST', 'DELETE'])
+@patients_bp.route('/<int:patient_id>/delete', methods=['POST'])
 def delete_patient(patient_id):
-    """
-    Delete an existing patient record by ID.
-    """
     patient = Patient.query.get(patient_id)
     if not patient:
         return jsonify({"error": "Patient not found"}), 404
@@ -79,4 +76,7 @@ def delete_patient(patient_id):
     db.session.delete(patient)
     db.session.commit()
 
-    return redirect('/')
+    # Use the endpoint name 'index', which is defined in main.py as:
+    # @app.route('/')
+    # def index():
+    return redirect(url_for('index'))
