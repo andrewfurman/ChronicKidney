@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, redirect
+from flask import Blueprint, request, jsonify, redirect, url_for
 from .patients_model import db, Patient
 
 patients_bp = Blueprint('patients_bp', __name__)
@@ -79,4 +79,4 @@ def delete_patient(patient_id):
     db.session.delete(patient)
     db.session.commit()
 
-    return redirect('/')
+    return redirect(url_for('index'))
