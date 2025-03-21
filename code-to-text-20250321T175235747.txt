@@ -1,3 +1,87 @@
+### FILE TREE (SELECTED)
+
+├─ view_patient_record
+|  ├─ static
+|  |  ├─ view_patient_record.js (32 lines)
+|  |  ├─ highlight_formatting.js (14 lines)
+|  |  └─ mermaid_markdown.js (11 lines)
+|  ├─ templates
+|  |  ├─ view_patient_record.html (130 lines)
+|  |  └─ header.html (8 lines)
+|  └─ view_patient_routes.py (1 lines)
+├─ main.py (27 lines)
+
+
+### FILE CONTENTS
+
+FILE: view_patient_record/static/view_patient_record.js
+----------------------------------------
+// view_patient_record.js
+// Main logic for editing the record, collapsing/expanding sections, etc.
+
+document.addEventListener('DOMContentLoaded', () => {
+  const editBtn = document.getElementById('edit-btn');
+  const toggleButtons = document.querySelectorAll('.toggle-section');
+  const sectionContents = document.querySelectorAll('.section-content');
+
+  let isEditing = false;
+
+  // Toggle collapse/expand for each section
+  toggleButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const parentSection = btn.closest('.collapsible');
+      const contentDiv = parentSection.querySelector('.section-content');
+      if (contentDiv.style.display === 'none') {
+        contentDiv.style.display = 'block';
+      } else {
+        contentDiv.style.display = 'none';
+      }
+    });
+  });
+
+  // Toggle edit mode for all content sections
+  editBtn.addEventListener('click', () => {
+    isEditing = !isEditing;
+    sectionContents.forEach((sec) => {
+      sec.contentEditable = isEditing;
+    });
+    editBtn.textContent = isEditing ? 'Save' : 'Edit';
+  });
+});
+
+FILE: view_patient_record/static/highlight_formatting.js
+----------------------------------------
+// Use Highlight.js to format code blocks in the view_patient_record.html page
+
+// highlight_formatting.js
+// Use Highlight.js to format code blocks in the view_patient_record.html page
+
+document.addEventListener('DOMContentLoaded', () => {
+  // If highlight.js is loaded via CDN or another script tag, proceed
+  if (typeof hljs !== 'undefined') {
+    // Find all <pre> or <code> blocks and highlight them
+    document.querySelectorAll('pre, code').forEach((block) => {
+      hljs.highlightElement(block);
+    });
+  }
+});
+
+FILE: view_patient_record/static/mermaid_markdown.js
+----------------------------------------
+//  format both plain markdown text and mermaid markdown as needed for view patient record html page
+
+// mermaid_markdown.js
+// Format both plain markdown text and mermaid markdown as needed for view_patient_record.html page
+
+document.addEventListener('DOMContentLoaded', () => {
+  // If Mermaid is loaded via CDN or otherwise, initialize it.
+  if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({ startOnLoad: true });
+  }
+});
+
+FILE: view_patient_record/templates/view_patient_record.html
+----------------------------------------
 <!-- 
 
 A single-page design with collapsible sections in a logical order:
@@ -128,3 +212,49 @@ A single-page design with collapsible sections in a logical order:
   <script src="{{ url_for('view_patient_record.static', filename='view_patient_record.js') }}"></script>
 </body>
 </html>
+
+FILE: view_patient_record/templates/header.html
+----------------------------------------
+<!-- there should be a simple header that goes along the top of the page and stays fixed andp title for the website: 🏥 Chronic Kidney Insights Viewer -->
+
+<!-- header.html -->
+<!-- there should be a simple header that goes along the top of the page and stays fixed and a title for the website: 🏥 Chronic Kidney Insights Viewer -->
+
+<header style="position: fixed; top: 0; width: 100%; background: #f8f8f8; padding: 10px; border-bottom: 1px solid #ccc;">
+  <h1>🏥 Chronic Kidney Insights Viewer</h1>
+</header>
+
+FILE: view_patient_record/view_patient_routes.py
+----------------------------------------
+
+
+FILE: main.py
+----------------------------------------
+from flask import Flask, Blueprint, render_template
+
+# Create a Blueprint for the "view_patient_record" module
+view_patient_record_bp = Blueprint(
+    'view_patient_record',
+    __name__,
+    template_folder='templates',
+    static_folder='static'
+)
+
+# Route for displaying the patient record page
+@view_patient_record_bp.route('/view')
+def show_patient_record():
+    return render_template('view_patient_record.html')
+
+# Initialize your main Flask app
+app = Flask(__name__)
+
+# Register the blueprint with a URL prefix, e.g. "/patient"
+app.register_blueprint(view_patient_record_bp, url_prefix='/patient')
+
+@app.route('/')
+def index():
+    return 'Hello from Flask!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+

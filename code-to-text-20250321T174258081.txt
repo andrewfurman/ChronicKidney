@@ -1,0 +1,68 @@
+### FILE TREE (SELECTED)
+
+├─ patients_api
+|  ├─ patients_model.py (8 lines)
+|  └─ patients_routes.py (1 lines)
+├─ pyproject.toml (24 lines)
+├─ main.py (12 lines)
+
+
+### FILE CONTENTS
+
+FILE: patients_api/patients_model.py
+----------------------------------------
+# Need to have a single database table to store:
+
+# primary key 
+# 1.	Patient Summary (Text)
+# 2.	Real-Time Alerts & Insights (text)
+# 3.	Interventions / Care Plan (text)
+# 4.	Timeline / Gantt (text)
+# 5.	Raw Medical Record Data (text)
+
+FILE: patients_api/patients_routes.py
+----------------------------------------
+
+
+FILE: pyproject.toml
+----------------------------------------
+[tool.poetry]
+name = "python-template"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = ">=3.11.0,<3.12"
+flask = "^3.0.0"
+gunicorn = "^21.2.0"
+
+[tool.pyright]
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+useLibraryCodeForTypes = true
+exclude = [".cache"]
+
+[tool.ruff]
+# https://beta.ruff.rs/docs/configuration/
+select = ['E', 'W', 'F', 'I', 'B', 'C4', 'ARG', 'SIM']
+ignore = ['W291', 'W292', 'W293']
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+FILE: main.py
+----------------------------------------
+from flask import Flask
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def index():
+    return 'Hello from Flask!'
+
+if __name__ == '__main__':
+  app.run(host='0.0.0.0', port=5000)
+
+
