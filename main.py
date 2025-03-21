@@ -18,9 +18,8 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # Initialize the SQLAlchemy object with the Flask app
 db.init_app(app)
 
-# Create the patients table (and any other tables) before the first request.
-@app.before_first_request
-def create_tables():
+# Create the patients table (and any other tables)
+with app.app_context():
     db.create_all()
 
 # Register the Blueprint for all patient-related routes under /patients
