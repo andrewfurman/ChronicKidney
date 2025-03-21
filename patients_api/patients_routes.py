@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, redirect
 from .patients_model import db, Patient
 
 patients_bp = Blueprint('patients_bp', __name__)
@@ -79,4 +79,4 @@ def delete_patient(patient_id):
     db.session.delete(patient)
     db.session.commit()
 
-    return jsonify({"message": f"Patient {patient_id} deleted successfully"}), 200
+    return flask.redirect('/')
