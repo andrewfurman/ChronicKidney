@@ -67,7 +67,7 @@ def update_patient(patient_id):
     return jsonify({"message": f"Patient {patient_id} updated successfully"}), 200
 
 
-@patients_bp.route('/<int:patient_id>', methods=['DELETE'])
+@patients_bp.route('/<int:patient_id>/delete', methods=['POST', 'DELETE'])
 def delete_patient(patient_id):
     """
     Delete an existing patient record by ID.
