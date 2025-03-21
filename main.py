@@ -1,17 +1,34 @@
-# main.py
-
 from flask import Flask
-# Import the Blueprint from view_patient_routes
-from view_patient_record.view_patient_routes import view_patient_record_bp
+from dotenv import load_dotenv
+import os
+
+from patients_api.patients_routes import patients_bp
+from patients_api.patients_model import db
+
+load_dotenv()  # Load environment variables from .env
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = Flask(__name__)
 
-# Register the blueprint with a URL prefix, e.g., "/patient"
-app.register_blueprint(view_patient_record_bp, url_prefix='/patient')
+# Configure Flask app to use SQLAlchemy with your Postgres URL
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize the SQLAlchemy object with the Flask app
+db.init_app(app)
+
+# Create the patients table (and any other tables) before the first request.
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+# Register the Blueprint for all patient-related routes under /patients
+app.register_blueprint(patients_bp, url_prefix='/patients')
 
 @app.route('/')
 def index():
-    return 'Hello from Flask!'
+    return 'Hello from Flask + SQLAlchemy!'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
