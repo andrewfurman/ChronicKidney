@@ -1,0 +1,1 @@
+// Use Highlight.js to format code blocks in the view_patient_record.html page

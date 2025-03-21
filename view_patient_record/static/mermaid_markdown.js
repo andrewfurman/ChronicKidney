@@ -1,0 +1,1 @@
+//  format both plain markdown text and mermaid markdown as needed for view patient record html page
