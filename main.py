@@ -10,7 +10,8 @@ load_dotenv()  # Load environment variables from .env
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-app = Flask(__name__)
+app = Flask(__name__, 
+    template_folder='view_patient_record/templates')
 
 # Configure Flask app to use SQLAlchemy with your Postgres URL
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
